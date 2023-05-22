@@ -1,0 +1,109 @@
+<html><head><style>body {
+   color: black;
+}
+</style></head><body><h1 id="exercise-2-text-processing-and-classification-using-spark">Exercise 2: Text Processing and Classification using Spark</h1>
+<p>Data-intensive Computing 2023S; v1.0</p>
+<p>Submission Deadline: <strong>May 30, 2023 (23:59)</strong></p>
+<h2 id="goal">Goal</h2>
+<p>In this assignment, we will apply Spark to process large text corpora. You will be working with the same group as in Project 1.</p>
+<h2 id="environment">Environment</h2>
+<p>Again, you will be using your account on the 12-node Hadoop Cluster <code>ssh01.lbd.hpc.tuwien.ac.at</code>. Please use your SSH client of choice to connect to the cluster. More details are given in the lecture slides.</p>
+<p>You can develop and run your Spark programs either</p>
+<ul>
+<li><p>locally on a subset of the data,</p>
+</li>
+<li><p>using the interactive Spark shells on the cluster (<code>spark-shell</code>, <code>pyspark</code>) or</p>
+</li>
+<li><p>submit your Spark jobs to Yarn in Cluster mode (using <code>spark-submit</code>, cf. slides)
+or</p>
+</li>
+<li>directly on the cluster in Jupyter notebooks in the provided <a href="https://jupyter01.lbd.hpc.tuwien.ac.at/">JupyterHub environment</a> (cf.  slides)</li>
+</ul>
+<p>For the first option, ie. local development, we do not offer an LBD-specific Docker image. However, for developing in Jupyter Notebooks with PySpark, the dataLAB refers to the <a href="https://github.com/dimajix/docker-jupyter-spark">Jupyter Spark Docker Container</a> as a possible option.</p>
+<p>For the last option, ie. running notebooks in the JupyterHub environment on the LBD cluster, note that there is a time limit of 48 hours for running Jupyter kernels (graciously extended by the dataLAB team from the cluster-wide two hour time limit). 
+The reason for the time limit for running kernels is that as long as they are not shut down, they use resources. From experience users tend to forget to shut down kernels when they&#39;re finished, leading to resources being all used up rather quickly and rendering the cluster inoperable for all others. If the resources (memory) get scarce, time limit would be reduced.</p>
+<p>As such, please make sure to stop your Jupyter kernels once you are done and do not use the interactive environment for long-running processing tasks. <strong>Always shut down your kernels after usage, not simply close the tab.</strong> </p>
+<!-- The dataLAB team provides instructions on how to make sure that your kernels are stopped in a notebook, which you can open within JupyterHub. -->
+<p>Again, do not &quot;probe&quot; the data with trial and error using non-Spark packages and data structures. Also here, it will slow (or eventually bring) down the cluster for everyone. Keep an eye on the resources your jobs are using and kill them if necessary.</p>
+<p>Be aware that high cluster utilization is expected until the end of the submission, especially before the submission deadlines.</p>
+<p>Therefore,</p>
+<ul>
+<li>always stop their Spark Contexts after finishing an analysis</li>
+<li>always shut down kernels when a Spark pipeline is complete</li>
+<li>always shut down Jupyter notebooks when not in use</li>
+<li>test jobs with a small sample of the data first</li>
+<li>plan ahead and do not wait until the last days before the deadline for your analyses</li>
+</ul>
+<h2 id="dataset-and-tasks">Dataset and Tasks</h2>
+<p>We will be reusing the <em>Amazon Review Dataset</em> from Assignment 1 and implement partial and similar functionality in parts 1 and 2, respectively, this time by making use of Spark. In Part 3, we will make use of the developed processing pipeline as input for a text classification task.
+ <strong>For submission (see below), produce the files requested using the development set</strong> to keep cluster usage low. Also make comparisons with Assignment 1 using only the development set.  </p>
+<p>The reduced data set for development can be found at</p>
+<p><code>hdfs:///user/dic23_shared/amazon-reviews/full/reviews_devset.json</code></p>
+<p>The full dataset can be found at</p>
+<p><code>hdfs:///user/dic23_shared/amazon-reviews/full/reviewscombined.json</code></p>
+<h2 id="part-1-rdds">Part 1) RDDs</h2>
+<p>Repeat the steps of Assignment 1, i.e. calculation of chi-square values and output of the sorted top terms per category, as well as the joined dictionary, using RDDs and transformations. Write the output to a file <code>output_rdd.txt</code>. Compare the generated <code>output_rdd.txt</code> with your generated <code>output.txt</code>  from Assignment 1 and describe your observations briefly  in the submission report (see Part 3).</p>
+<h2 id="part-2-datasets-dataframes-spark-ml-and-pipelines">Part 2) Datasets/DataFrames: Spark ML and Pipelines</h2>
+<p>Convert the review texts to a classic vector space representation with TFIDF-weighted features based on the Spark DataFrame/Dataset API by building a transformation <a href="https://spark.apache.org/docs/latest/ml-pipeline.html">pipeline</a>.
+The primary goal of this part is the preparation of the pipeline for Part 3 (see below). Note: although parts of this pipeline will be very similar to Assignment 1 or Part 1 above, do not expect to obtain identical results or have access to all intermediate outputs to compare the individual steps.</p>
+<p>Use built-in functions for <a href="https://spark.apache.org/docs/latest/ml-features.html#tokenizer">tokenization</a> to unigrams at whitespaces, tabs, digits, and the delimiter characters ()[]{}.!?,;:+=-_&quot;&#39;`~#@&amp;*%€$§\/, casefolding, <a href="https://spark.apache.org/docs/latest/ml-features.html#stopwordsremover">stopword removal</a>, <a href="https://spark.apache.org/docs/latest/ml-features.html#tf-idf">TF-IDF calculation</a>, and <a href="https://spark.apache.org/docs/latest/ml-features.html#chisqselector">chi square selection</a> ) (using 2000 top terms overall). Write the terms selected this way to a file <code>output_ds.txt</code> and compare them with the terms selected in Assignment 1. Describe your observations briefly  in the submission report (see Part 3).</p>
+<h2 id="part-3-text-classification">Part 3) Text Classification</h2>
+<p>In this part, you will train a text classifier from the features extracted in Part 2. The goal is to learn a model that can predict the product category from a review&#39;s text.</p>
+<p>To this end, extend the pipeline from Part 2 such that a <strong>Support Vector Machine</strong> classifier is trained. Since we are dealing with multi-class problems, make sure to put a strategy in place that allows binary classifiers to be applicable. Apply vector length normalization before feeding the feature vectors into the classifier (use <a href="https://spark.apache.org/docs/latest/mllib-feature-extraction.html#normalizer"><code>Normalizer</code></a> with L2 norm).</p>
+<p>Follow best practices for machine learning experiment design and investigate the effects of parameter settings using the functions provided by Spark:</p>
+<ul>
+<li><p>Split the review data into training, validation, and test set.</p>
+</li>
+<li><p>Make experiments reproducible.</p>
+</li>
+<li><p>Use a grid search for parameter optimization:</p>
+<ul>
+<li><p>Compare chi square overall top 2000 filtered features with another, heavier filtering with much less dimensionality (see Spark ML documentation for options).</p>
+</li>
+<li><p>Compare different SVM settings by varying the regularization parameter (choose 3 different values), standardization of training features (2 values), and maximum number of iterations (2 values).</p>
+</li>
+</ul>
+</li>
+<li><p>Use the <code>MulticlassClassificationEvaluator</code> to estimate performance of your trained classifiers on the test set, using F1 measure as criterion.</p>
+</li>
+</ul>
+<p><em>Note:</em> Again, to ensure availability of the cluster to as many students as possible, resort to the development set to build, optimize, and evaluate the classifier.
+ You may further downsample the development set to make model training easier.</p>
+<p>Produce a <code>report.pdf</code>, that contains detailed report inlcuding atleast five sections (1. Introduction,  2. Problem Overview, 3. Methodology and Approach, 4. Results, and 5. Conclusions). The Methodology and Approach section should have a figure  <strong>illustrating your strategy and pipeline in one figure</strong> (1 page maximum).  Include the performance indicators obtained over the different setting explored and interpret the results obtained. The overall report should not exceed more than 8 pages (A4 size). </p>
+<h2 id="important-notes">Important notes</h2>
+<ul>
+<li>Efficiency of the implementation is a crucial aspect of this assignment. Consider carefully how you design your implementation in order to avoid unnecessary overheads and calculations while achieving the expected final results.</li>
+</ul>
+<ul>
+<li>For all parts, a Jupyter notebook is the preferred format. Writing Spark jobs is also acceptable, however, in this case pay close attention to <strong>documenting all code</strong> submitted as well as <strong>intermediate outputs, graphs, etc.</strong> to make your choices traceable.</li>
+</ul>
+<h2 id="scoring">Scoring</h2>
+<p>Part 1 - max. 30 points</p>
+<ul>
+<li>Correctness and resource/runtime efficiency</li>
+</ul>
+<p>Part 2 -max.  25 points</p>
+<ul>
+<li>Correctness and resource/runtime efficiency</li>
+</ul>
+<p>Part 3 - max. 25 points</p>
+<ul>
+<li>Correctness and resource/runtime efficiency </li>
+</ul>
+<p>Code documentation- 10 points
+Report - 10 points</p>
+<p><strong>Maximum total score: 100 points</strong></p>
+<h1 id="submission">Submission</h1>
+<h2 id="submission-files">Submission Files</h2>
+<p>Please submit a single file named <code>&lt;GroupID&gt;_DIC2023_Ex2.zip</code> that contains:</p>
+<ul>
+<li><p><code>output_rdd.txt</code>, <code>output_ds.txt</code>: results obtained</p>
+</li>
+<li><p><code>report.pdf</code>: 8 page report (max), 11pt font size, one column format</p>
+</li>
+<li><p><code>src/</code>: subdirectory containing <strong>all sources</strong> and a <strong>structured and documented Jupyter notebook</strong> (preferred) and/or the <strong>very well documented source code</strong> (Spark jobs) of your implementation and experiments (Java, Scala, or PySpark) and all intermediate outputs, graphs, etc.</p>
+</li>
+</ul>
+<h2 id="submission-procedure">Submission procedure</h2>
+<p>Submit your solution via TUWEL before <strong>May 30, 2023 (23:59)</strong>.</p>
+</body></html>
